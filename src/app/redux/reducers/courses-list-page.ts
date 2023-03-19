@@ -4,7 +4,6 @@ import { ICoursesListPageState } from "./models";
 const initialState = {
   token: "",
   courseId: "",
-  coursesProgress: {},
 } as ICoursesListPageState;
 
 export const coursesListPageSlice = createSlice({

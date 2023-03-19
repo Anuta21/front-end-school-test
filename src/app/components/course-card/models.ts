@@ -1,5 +1,3 @@
-import { StringLiteral } from "typescript";
-
 export interface ICourseCardProps {
   id: string;
   title: string;

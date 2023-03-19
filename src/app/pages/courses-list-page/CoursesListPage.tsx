@@ -8,6 +8,8 @@ import { AxiosError } from "axios";
 import { authErrorResponse } from "../../services/controllers/constants";
 import { coursesListPageSlice, useAppSelector } from "../../redux";
 import { useDispatch } from "react-redux";
+import { IArrayBounds } from "./models";
+import { maxCoursesNumberOnPage } from "./constants";
 
 export const CoursesListPage: React.FC = () => {
   const { token } = useAppSelector(
@@ -20,6 +22,20 @@ export const CoursesListPage: React.FC = () => {
   const navigate = useNavigate();
   const [courses, setCourses] = useState([] as Array<ICourse>);
   const [currentPage, setCurrentPage] = useState(1);
+  const [coursesArrayBounds, setCoursesArrayBounds] = useState({
+    start: 0,
+    end: maxCoursesNumberOnPage,
+  } as IArrayBounds);
+
+  useEffect(() => {
+    setCoursesArrayBounds({
+      start: (currentPage - 1) * maxCoursesNumberOnPage,
+      end:
+        courses.length / maxCoursesNumberOnPage > currentPage
+          ? currentPage * maxCoursesNumberOnPage
+          : undefined,
+    });
+  }, [currentPage, courses]);
 
   useEffect(() => {
     async function getData() {
@@ -67,10 +83,7 @@ export const CoursesListPage: React.FC = () => {
         <>
           <div>
             {courses
-              .slice(
-                (currentPage - 1) * 10,
-                courses.length / 10 > currentPage ? currentPage * 10 : undefined
-              )
+              .slice(coursesArrayBounds.start, coursesArrayBounds.end)
               .map((course) => (
                 <div style={{ marginTop: "20px" }}>
                   <CourseCardComponent
@@ -90,11 +103,12 @@ export const CoursesListPage: React.FC = () => {
                 </div>
               ))}
           </div>
+
           <PaginationWrapper>
             <Pagination
-              count={Math.ceil(courses.length / 10)}
+              count={Math.ceil(courses.length / maxCoursesNumberOnPage)}
               page={currentPage}
-              onChange={(e, p) => setCurrentPage(p)}
+              onChange={(e, page) => setCurrentPage(page)}
               showFirstButton
               showLastButton
             />
@@ -102,7 +116,7 @@ export const CoursesListPage: React.FC = () => {
         </>
       ) : (
         <div style={{ transform: "translateY(40vh)" }}>
-          <CircularProgress size={"100px"} />
+          <CircularProgress size="100px" />
         </div>
       )}
     </Wrapper>

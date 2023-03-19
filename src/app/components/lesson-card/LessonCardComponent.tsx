@@ -2,13 +2,14 @@ import Hls from "hls.js";
 import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { unlockedStatus } from "./constants";
-import { ILessonCardProps } from "./models";
-import { Title, Content } from "./styles";
+import { ILesson } from "../../services";
+import { Title, Content, Video } from "./styles";
 import { LockOutlined } from "@mui/icons-material";
 import { useDispatch } from "react-redux";
 import { coursePageSlice, useAppSelector } from "../../redux";
+import { Colors } from "../../common/assets";
 
-export const LessonCardComponent: React.FC<ILessonCardProps> = ({
+export const LessonCardComponent: React.FC<ILesson> = ({
   id,
   link,
   order,
@@ -18,9 +19,11 @@ export const LessonCardComponent: React.FC<ILessonCardProps> = ({
 }) => {
   const [showVideo, setShowVideo] = useState(false);
   const [downloadVideo, setDownloadVideo] = useState(false);
+  const [showErrorMessage, setShowErrorMessage] = useState(false);
 
   const navigate = useNavigate();
   const dispatch = useDispatch();
+
   const { courseId } = useAppSelector(
     (state) => state.persistedReducer.coursesListPage
   );
@@ -38,6 +41,11 @@ export const LessonCardComponent: React.FC<ILessonCardProps> = ({
         try {
           hls.loadSource(link);
           hls.attachMedia(video);
+          hls.on(Hls.Events.ERROR, function (event, data) {
+            if (data.type === Hls.ErrorTypes.NETWORK_ERROR) {
+              setShowErrorMessage(true);
+            }
+          });
         } catch {
           navigate("/error/");
         }
@@ -82,16 +90,23 @@ export const LessonCardComponent: React.FC<ILessonCardProps> = ({
       </Title>
 
       <Content show={showVideo}>
-        {status === "unlocked" ? (
-          <video
-            style={{
-              width: showVideo ? "90vw" : "0px",
-              position: "absolute",
-            }}
-            id={`video-${order}`}
-            poster={`${previewImageLink}/lesson-${order}.webp`}
-            controls
-          ></video>
+        {status === unlockedStatus ? (
+          <>
+            <Video
+              show={showVideo}
+              id={`video-${order}`}
+              poster={`${previewImageLink}/lesson-${order}.webp`}
+              controls
+            ></Video>
+            <div
+              style={{
+                color: Colors.Red,
+                opacity: showErrorMessage ? "1" : "0",
+              }}
+            >
+              Failed to load media content
+            </div>
+          </>
         ) : (
           <div />
         )}

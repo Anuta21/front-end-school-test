@@ -10,16 +10,10 @@ import {
 } from "../../redux";
 import { Client, IGetCourse } from "../../services";
 import { authErrorResponse } from "../../services/controllers/constants";
-import {
-  Lessons,
-  PreviewVideo,
-  Title,
-  Wrapper,
-  Description,
-  BackButton,
-} from "./styles";
+import { Title, Wrapper, Description, BackButton } from "./styles";
 import { LessonCardComponent } from "../../components/lesson-card";
 import { CircularProgress } from "@mui/material";
+import { unlockedStatus } from "../../components/lesson-card/constants";
 
 export const CoursePage: React.FC = () => {
   const { token, courseId } = useAppSelector(
@@ -53,6 +47,10 @@ export const CoursePage: React.FC = () => {
         try {
           const responseData = (await client.courses.getCourse(courseId, token))
             .data;
+          const lessons = responseData.lessons.sort(
+            (a, b) => a.order - b.order
+          );
+          responseData.lessons = lessons.slice();
           console.log(responseData);
           setCourseData(responseData);
         } catch (error) {
@@ -81,7 +79,7 @@ export const CoursePage: React.FC = () => {
     if (courseData.lessons) {
       if (!coursesProgress[courseId]) {
         const unlockedLessons = courseData.lessons.filter(
-          (lesson) => lesson.status === "unlocked"
+          (lesson) => lesson.status === unlockedStatus
         );
         const courseProgress = unlockedLessons.reduce(
           (arr, lesson) => ({ ...arr, [lesson.id]: 0 }),
@@ -90,6 +88,7 @@ export const CoursePage: React.FC = () => {
         dispatch(setCourseProgress({ courseId, courseProgress }));
       }
     }
+
     var video = document.getElementById("previewVideo");
     if (Hls.isSupported() && video instanceof HTMLMediaElement) {
       console.log(coursesProgress);
@@ -100,12 +99,6 @@ export const CoursePage: React.FC = () => {
         ? coursesProgress[courseId]["preview"]
         : 0;
 
-      video.addEventListener("keydown", function (this: HTMLMediaElement) {
-        this.playbackRate =
-          this.playbackRate > 0.25 && this.playbackRate < 2
-            ? this.playbackRate - 0.25
-            : this.playbackRate;
-      });
       video.addEventListener("timeupdate", function () {
         dispatch(
           setLessonProgress({
@@ -118,8 +111,6 @@ export const CoursePage: React.FC = () => {
     }
   }, [courseData]);
 
-  useEffect(() => {}, []);
-
   return (
     <>
       {Object.keys(courseData).length !== 0 ? (
@@ -128,14 +119,12 @@ export const CoursePage: React.FC = () => {
           <Wrapper>
             <Title>{courseData.title}</Title>
             {courseData.meta.courseVideoPreview ? (
-              <PreviewVideo>
-                <video
-                  id="previewVideo"
-                  width="400px"
-                  poster={`${courseData.meta.courseVideoPreview.previewImageLink}/preview.webp`}
-                  controls
-                ></video>
-              </PreviewVideo>
+              <video
+                id="previewVideo"
+                width="400px"
+                poster={`${courseData.meta.courseVideoPreview.previewImageLink}/preview.webp`}
+                controls
+              />
             ) : (
               <div />
             )}
@@ -149,8 +138,8 @@ export const CoursePage: React.FC = () => {
               {courseData.meta.skills ? (
                 <>
                   Skills:
-                  {courseData.meta.skills.map((skill) => (
-                    <li>{skill}</li>
+                  {courseData.meta.skills.map((skill, id) => (
+                    <li key={id}>{skill}</li>
                   ))}{" "}
                 </>
               ) : (
@@ -158,7 +147,8 @@ export const CoursePage: React.FC = () => {
               )}
             </div>
           </Wrapper>
-          <Lessons>
+
+          <div>
             {courseData.lessons.map((lesson) => (
               <LessonCardComponent
                 key={lesson.id}
@@ -170,12 +160,12 @@ export const CoursePage: React.FC = () => {
                 previewImageLink={lesson.previewImageLink}
               />
             ))}
-          </Lessons>
+          </div>
         </>
       ) : (
         <Wrapper>
           <div style={{ transform: "translateY(40vh)" }}>
-            <CircularProgress size={"100px"} />
+            <CircularProgress size="100px" />
           </div>
         </Wrapper>
       )}
