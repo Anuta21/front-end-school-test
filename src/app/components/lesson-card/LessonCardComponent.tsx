@@ -3,7 +3,7 @@ import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { unlockedStatus } from "./constants";
 import { ILesson } from "../../services";
-import { Title, Content, Video } from "./styles";
+import { Title, Content, Video, TitleText } from "./styles";
 import { LockOutlined } from "@mui/icons-material";
 import { useDispatch } from "react-redux";
 import { coursePageSlice, useAppSelector } from "../../redux";
@@ -70,8 +70,7 @@ export const LessonCardComponent: React.FC<ILesson> = ({
   return (
     <>
       <Title unlocked={status === unlockedStatus}>
-        <div
-          style={{ marginLeft: "20px" }}
+        <TitleText
           onClick={() => {
             if (status === unlockedStatus) {
               setShowVideo(!showVideo);
@@ -80,7 +79,7 @@ export const LessonCardComponent: React.FC<ILesson> = ({
           }}
         >
           Lesson {order} - {title}
-        </div>
+        </TitleText>
         <LockOutlined
           style={{
             opacity: status === unlockedStatus ? "0" : "1",

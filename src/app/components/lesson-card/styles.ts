@@ -20,6 +20,13 @@ export const Title = styled.div<ITitleProps>`
   }
 `;
 
+export const TitleText = styled.div`
+  margin-left: 20px;
+  @media (max-device-width: 480px) {
+    max-width: 330px;
+  }
+`;
+
 export const Content = styled.div<IContent>`
   height: ${(props) => (props.show ? "580px" : "0px")};
   margin: 20px 0px 0px 20px;
