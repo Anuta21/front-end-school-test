@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { Client, ICourse } from "../../services";
 import { CourseCardComponent } from "../../components/course-card";
-import { Wrapper } from "./styles";
+import { PaginationWrapper, Wrapper } from "./styles";
 import { useNavigate } from "react-router-dom";
 import { CircularProgress, Pagination } from "@mui/material";
 import { AxiosError } from "axios";
@@ -19,6 +19,7 @@ export const CoursesListPage: React.FC = () => {
   const client = new Client();
   const navigate = useNavigate();
   const [courses, setCourses] = useState([] as Array<ICourse>);
+  const [currentPage, setCurrentPage] = useState(1);
 
   useEffect(() => {
     async function getData() {
@@ -37,11 +38,14 @@ export const CoursesListPage: React.FC = () => {
         try {
           const responseData = (await client.courses.getCourses(token)).data;
           setCourses(responseData.courses.reverse());
+          console.log(responseData);
         } catch (error) {
           console.log(error);
           if (error instanceof AxiosError) {
             if (error.response?.status === 401) {
               return authErrorResponse;
+            } else {
+              navigate("/error/");
             }
           }
         }
@@ -60,30 +64,47 @@ export const CoursesListPage: React.FC = () => {
   return (
     <Wrapper>
       {courses.length > 0 ? (
-        courses.map((course) => (
-          <div style={{ marginTop: "20px" }}>
-            <CourseCardComponent
-              key={course.id}
-              id={course.id}
-              title={course.title}
-              imageLink={`${course.previewImageLink}/cover.webp`}
-              description={course.description}
-              lessonsCount={course.lessonsCount}
-              skills={course.meta.skills}
-              rating={course.rating}
-              onClickFunction={() => {
-                dispatch(setCourseId(course.id));
-                navigate(`/courses/course?courseId=${course.id}`);
-              }}
-            />
+        <>
+          <div>
+            {courses
+              .slice(
+                (currentPage - 1) * 10,
+                courses.length / 10 > currentPage ? currentPage * 10 : undefined
+              )
+              .map((course) => (
+                <div style={{ marginTop: "20px" }}>
+                  <CourseCardComponent
+                    key={course.id}
+                    id={course.id}
+                    title={course.title}
+                    imageLink={`${course.previewImageLink}/cover.webp`}
+                    description={course.description}
+                    lessonsCount={course.lessonsCount}
+                    skills={course.meta.skills}
+                    rating={course.rating}
+                    onClickFunction={() => {
+                      dispatch(setCourseId(course.id));
+                      navigate(`/courses/course?courseId=${course.id}`);
+                    }}
+                  />
+                </div>
+              ))}
           </div>
-        ))
+          <PaginationWrapper>
+            <Pagination
+              count={Math.ceil(courses.length / 10)}
+              page={currentPage}
+              onChange={(e, p) => setCurrentPage(p)}
+              showFirstButton
+              showLastButton
+            />
+          </PaginationWrapper>
+        </>
       ) : (
         <div style={{ transform: "translateY(40vh)" }}>
           <CircularProgress size={"100px"} />
         </div>
       )}
-      {/*<Pagination count={10} color="secondary" showFirstButton showLastButton />*/}
     </Wrapper>
   );
 };

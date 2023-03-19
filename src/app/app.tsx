@@ -5,7 +5,7 @@ import {
   Route,
   Routes,
 } from "react-router-dom";
-import { CoursesListPage, CoursePage } from "./pages";
+import { CoursesListPage, CoursePage, ErrorPage } from "./pages";
 
 export const App: React.FC = () => {
   return (
@@ -14,6 +14,7 @@ export const App: React.FC = () => {
         <Route path="/" element={<Navigate to={"/courses/"} />} />
         <Route path="/courses/" element={<CoursesListPage />} />
         <Route path="/courses/course/" element={<CoursePage />} />
+        <Route path="/error/" element={<ErrorPage />} />
       </Routes>
     </Router>
   );

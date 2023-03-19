@@ -11,14 +11,15 @@ import {
 import { Client, IGetCourse } from "../../services";
 import { authErrorResponse } from "../../services/controllers/constants";
 import {
-  Details,
   Lessons,
   PreviewVideo,
   Title,
   Wrapper,
   Description,
+  BackButton,
 } from "./styles";
 import { LessonCardComponent } from "../../components/lesson-card";
+import { CircularProgress } from "@mui/material";
 
 export const CoursePage: React.FC = () => {
   const { token, courseId } = useAppSelector(
@@ -59,6 +60,8 @@ export const CoursePage: React.FC = () => {
           if (error instanceof AxiosError) {
             if (error.response?.status === 401) {
               return authErrorResponse;
+            } else {
+              navigate("/error/");
             }
           }
         }
@@ -97,6 +100,12 @@ export const CoursePage: React.FC = () => {
         ? coursesProgress[courseId]["preview"]
         : 0;
 
+      video.addEventListener("keydown", function (this: HTMLMediaElement) {
+        this.playbackRate =
+          this.playbackRate > 0.25 && this.playbackRate < 2
+            ? this.playbackRate - 0.25
+            : this.playbackRate;
+      });
       video.addEventListener("timeupdate", function () {
         dispatch(
           setLessonProgress({
@@ -115,27 +124,37 @@ export const CoursePage: React.FC = () => {
     <>
       {Object.keys(courseData).length !== 0 ? (
         <>
+          <BackButton onClick={() => navigate(-1)}>Go Back</BackButton>
           <Wrapper>
             <Title>{courseData.title}</Title>
-            <PreviewVideo>
-              <video
-                id="previewVideo"
-                width="400px"
-                poster={`${courseData.meta.courseVideoPreview.previewImageLink}/preview.webp`}
-                controls
-              ></video>
-            </PreviewVideo>
+            {courseData.meta.courseVideoPreview ? (
+              <PreviewVideo>
+                <video
+                  id="previewVideo"
+                  width="400px"
+                  poster={`${courseData.meta.courseVideoPreview.previewImageLink}/preview.webp`}
+                  controls
+                ></video>
+              </PreviewVideo>
+            ) : (
+              <div />
+            )}
+
             <Description>{courseData.description}</Description>
             <div style={{ margin: "20px 0px 20px 0px" }}>
               <>Lessons Number: {courseData.lessons.length}</>
               <div style={{ marginBottom: "20px" }}>
                 Rating: {courseData.rating}
               </div>
-              Skills:
               {courseData.meta.skills ? (
-                courseData.meta.skills.map((skill) => <li>{skill}</li>)
+                <>
+                  Skills:
+                  {courseData.meta.skills.map((skill) => (
+                    <li>{skill}</li>
+                  ))}{" "}
+                </>
               ) : (
-                <div />
+                <>No skills</>
               )}
             </div>
           </Wrapper>
@@ -154,7 +173,11 @@ export const CoursePage: React.FC = () => {
           </Lessons>
         </>
       ) : (
-        <div />
+        <Wrapper>
+          <div style={{ transform: "translateY(40vh)" }}>
+            <CircularProgress size={"100px"} />
+          </div>
+        </Wrapper>
       )}
     </>
   );

@@ -12,6 +12,7 @@ import {
   ParamsComponent,
   Button,
   ButtonText,
+  DescriptionText,
 } from "./styles";
 
 export const CourseCardComponent: React.FC<ICourseCardProps> = ({
@@ -33,22 +34,24 @@ export const CourseCardComponent: React.FC<ICourseCardProps> = ({
         <Content>
           <Image src={imageLink}></Image>
           <Description>
-            <div
-              style={{
-                transform: " translate(20%, 0%)",
-                width: "600px",
-              }}
-            >
-              {description}
-            </div>
+            <DescriptionText>{description}</DescriptionText>
           </Description>
           <ParamsComponent>
             <div style={{ margin: "5px 0px 0px 20px" }}>
               <LessonsCount>Lessons: {lessonsCount}</LessonsCount>
               <Skills>
-                Skills:
-                {skills ? skills.map((skill) => <li>{skill}</li>) : <div />}
+                {skills ? (
+                  <>
+                    Skills:
+                    {skills.map((skill) => (
+                      <li>{skill}</li>
+                    ))}{" "}
+                  </>
+                ) : (
+                  <>No skills</>
+                )}
               </Skills>
+
               <Rating>Rating: {rating}</Rating>
             </div>
           </ParamsComponent>

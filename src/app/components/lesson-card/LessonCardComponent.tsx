@@ -1,5 +1,6 @@
 import Hls from "hls.js";
-import React, { useEffect, useRef, useState } from "react";
+import React, { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { unlockedStatus } from "./constants";
 import { ILessonCardProps } from "./models";
 import { Title, Content } from "./styles";
@@ -18,6 +19,7 @@ export const LessonCardComponent: React.FC<ILessonCardProps> = ({
   const [showVideo, setShowVideo] = useState(false);
   const [downloadVideo, setDownloadVideo] = useState(false);
 
+  const navigate = useNavigate();
   const dispatch = useDispatch();
   const { courseId } = useAppSelector(
     (state) => state.persistedReducer.coursesListPage
@@ -32,8 +34,14 @@ export const LessonCardComponent: React.FC<ILessonCardProps> = ({
       var video = document.getElementById(`video-${order}`);
       if (Hls.isSupported() && video instanceof HTMLMediaElement) {
         var hls = new Hls();
-        hls.loadSource(link);
-        hls.attachMedia(video);
+
+        try {
+          hls.loadSource(link);
+          hls.attachMedia(video);
+        } catch {
+          navigate("/error/");
+        }
+
         video.currentTime = coursesProgress[courseId]
           ? coursesProgress[courseId][id]
           : 0;
@@ -73,15 +81,14 @@ export const LessonCardComponent: React.FC<ILessonCardProps> = ({
         />
       </Title>
 
-      <Content style={{ height: showVideo ? "320px" : "0px" }}>
+      <Content show={showVideo}>
         {status === "unlocked" ? (
           <video
             style={{
-              height: showVideo ? "300px" : "0px",
+              width: showVideo ? "90vw" : "0px",
               position: "absolute",
             }}
             id={`video-${order}`}
-            width="600px"
             poster={`${previewImageLink}/lesson-${order}.webp`}
             controls
           ></video>
